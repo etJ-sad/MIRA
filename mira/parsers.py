@@ -76,6 +76,11 @@ def _parse_docx(path: Path) -> list[Section]:
     return sections
 
 
+def _numbered_rows(rows) -> list[tuple[int, list[str]]]:
+    """Non-empty rows with their original 1-based row number, so citations match the file."""
+    return [(number, row) for number, row in enumerate(rows, start=1) if any(str(cell).strip() for cell in row)]
+
+
 def _rows_to_sections(header: list[str], rows: list[tuple[int, list[str]]], prefix: str) -> list[Section]:
     """One section per row, written as "Spalte: Wert" so fault-code lists stay searchable."""
     sections = []
@@ -92,13 +97,9 @@ def _parse_xlsx(path: Path) -> list[Section]:
     workbook = load_workbook(str(path), read_only=True, data_only=True)
     sections: list[Section] = []
     for sheet in workbook.worksheets:
-        values = [["" if v is None else str(v) for v in row] for row in sheet.iter_rows(values_only=True)]
-        values = [row for row in values if any(cell.strip() for cell in row)]
-        if not values:
-            continue
-        header = values[0]
-        rows = [(i + 2, row) for i, row in enumerate(values[1:])]
-        sections += _rows_to_sections(header, rows, f"Blatt {sheet.title}, ")
+        rows = _numbered_rows(["" if v is None else str(v) for v in row] for row in sheet.iter_rows(values_only=True))
+        if rows:
+            sections += _rows_to_sections(rows[0][1], rows[1:], f"Blatt {sheet.title}, ")
     workbook.close()
     return sections
 
@@ -113,8 +114,7 @@ def _parse_csv(path: Path) -> list[Section]:
         dialect = csv.Sniffer().sniff(text[:4096], delimiters=";,\t")
     except csv.Error:
         dialect = csv.excel
-    values = [row for row in csv.reader(io.StringIO(text), dialect) if any(c.strip() for c in row)]
-    if not values:
+    rows = _numbered_rows(csv.reader(io.StringIO(text), dialect))
+    if not rows:
         return []
-    rows = [(i + 2, row) for i, row in enumerate(values[1:])]
-    return _rows_to_sections(values[0], rows, "")
+    return _rows_to_sections(rows[0][1], rows[1:], "")

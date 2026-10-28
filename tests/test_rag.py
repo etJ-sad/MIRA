@@ -43,3 +43,11 @@ def test_reingest_replaces_old_version(mira, store, tmp_path):
     path.write_text("Code;Beschreibung\nE-417;neu\n", encoding="utf-8")
     mira.ingest_file(path)
     assert store.documents() == [{"doc_id": store.documents()[0]["doc_id"], "name": "stoercodes.csv", "chunks": 1}]
+
+
+def test_replacement_without_text_removes_old_chunks(mira, store, tmp_path):
+    path = write_codes(tmp_path)
+    mira.ingest_file(path)
+    path.write_text("Code;Beschreibung\n", encoding="utf-8")
+    assert mira.ingest_file(path) == 0
+    assert store.documents() == []

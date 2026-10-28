@@ -77,6 +77,8 @@ class Mira:
             for piece in split_text(section.text, self.settings.chunk_size, self.settings.chunk_overlap):
                 chunks.append((piece, section.location))
         if not chunks:
+            # A replacement without text must not leave the old version searchable
+            self.store.delete_document(document_id(path))
             return 0
         # The document name goes into the embedded text so a question naming the machine finds its manual
         vectors = self._embed([f"{path.name}\n{text}" for text, _ in chunks])

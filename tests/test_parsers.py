@@ -43,3 +43,21 @@ def test_split_text_overlaps_and_covers_everything():
     assert len(chunks) > 1
     assert all(len(c) <= 300 for c in chunks)
     assert "Satz 199" in chunks[-1]
+
+
+def test_blank_rows_keep_original_row_numbers(tmp_path):
+    path = tmp_path / "codes.csv"
+    path.write_text("Code;Text\n;\nE-9;Lager laut\n", encoding="utf-8")
+    [section] = parse_file(path)
+    assert section.location == "Zeile 3"
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "F"
+    sheet.append(["Code", "Text"])
+    sheet.append([None, None])
+    sheet.append(["E-9", "Lager laut"])
+    xlsx = tmp_path / "codes.xlsx"
+    workbook.save(xlsx)
+    [section] = parse_file(xlsx)
+    assert section.location == "Blatt F, Zeile 3"
