@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIRA</title>
+<style>
+  :root { --bg:#f6f7f9; --panel:#fff; --ink:#1b1f24; --quiet:#5b6470; --line:#dde1e6; --accent:#0b6bcb; --warn:#a15c00; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111418; --panel:#1a1e24; --ink:#e8ebef; --quiet:#9aa4b0; --line:#2c323a; --accent:#5aa9ff; --warn:#e0a24a; } }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.5 system-ui, "Segoe UI", sans-serif; background:var(--bg); color:var(--ink); }
+  header { display:flex; align-items:center; gap:12px; padding:12px 20px; border-bottom:1px solid var(--line); background:var(--panel); }
+  header h1 { font-size:18px; margin:0; }
+  header .status { margin-left:auto; font-size:13px; color:var(--quiet); }
+  main { display:grid; grid-template-columns:1fr 300px; gap:16px; max-width:1200px; margin:0 auto; padding:16px; }
+  @media (max-width: 860px) { main { grid-template-columns:1fr; } }
+  section, aside { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  #chat { display:flex; flex-direction:column; gap:14px; min-height:50vh; }
+  .q { align-self:flex-end; background:var(--accent); color:#fff; padding:8px 12px; border-radius:10px; max-width:80%; }
+  .a { white-space:pre-wrap; }
+  .a.unknown { color:var(--warn); }
+  .sources { margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+  details.src { border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:13px; }
+  details.src summary { cursor:pointer; color:var(--quiet); }
+  .meta { font-size:12px; color:var(--quiet); display:flex; gap:10px; align-items:center; margin-top:6px; }
+  .meta button { border:1px solid var(--line); background:none; color:var(--ink); border-radius:6px; cursor:pointer; padding:2px 8px; }
+  form#ask { display:flex; gap:8px; margin-top:16px; }
+  input[type=text] { flex:1; padding:10px 12px; font:inherit; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); }
+  button.primary { padding:10px 16px; font:inherit; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  aside h2 { font-size:15px; margin:0 0 8px; }
+  aside ul { list-style:none; padding:0; margin:8px 0 0; font-size:13px; }
+  aside li { display:flex; justify-content:space-between; gap:6px; padding:4px 0; border-bottom:1px solid var(--line); }
+  aside li button { border:0; background:none; color:var(--quiet); cursor:pointer; }
+  .hint { font-size:12px; color:var(--quiet); }
+</style>
+</head>
+<body>
+<header>
+  <h1>MIRA</h1><span class="hint">Wartungs-Assistent, läuft lokal auf der NPU</span>
+  <span class="status" id="status">Prüfe Verbindung …</span>
+</header>
+<main>
+  <section>
+    <div id="chat"><p class="hint">Frag z. B.: „Anlage 3 zeigt E-417, was tun?“ Antworten kommen nur aus den eingelesenen Dokumenten, mit Quelle.</p></div>
+    <form id="ask">
+      <input type="text" id="question" placeholder="Frage zur Störung oder Wartung …" autocomplete="off" required minlength="2">
+      <button class="primary" id="send">Fragen</button>
+    </form>
+  </section>
+  <aside>
+    <h2>Dokumente</h2>
+    <input type="file" id="file" multiple accept=".pdf,.docx,.xlsx,.xlsm,.csv,.txt,.md">
+    <p class="hint" id="upload-state">PDF, Word, Excel, CSV, Text</p>
+    <ul id="docs"></ul>
+  </aside>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+async function api(path, options) {
+  const res = await fetch(path, options);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.detail || res.statusText);
+  return body;
+}
+
+async function loadStatus() {
+  try {
+    const h = await api('/api/health');
+    $('#status').textContent = h.ovms_error ? 'NPU-Server nicht erreichbar' : `${h.llm_model.split('/').pop()} auf NPU`;
+  } catch { $('#status').textContent = 'API nicht erreichbar'; }
+}
+
+async function loadDocs() {
+  const list = $('#docs'); list.replaceChildren();
+  for (const d of await api('/api/documents')) {
+    const li = el('li'); li.append(el('span', null, `${d.name} (${d.chunks})`));
+    const del = el('button', null, '✕'); del.title = 'Entfernen';
+    del.onclick = async () => { if (confirm(`${d.name} entfernen?`)) { await api(`/api/documents/${d.doc_id}`, {method:'DELETE'}); loadDocs(); } };
+    li.append(del); list.append(li);
+  }
+}
+
+$('#file').onchange = async e => {
+  for (const f of e.target.files) {
+    $('#upload-state').textContent = `Lese ${f.name} ein …`;
+    const form = new FormData(); form.append('file', f);
+    try { const r = await api('/api/documents', {method:'POST', body:form}); $('#upload-state').textContent = `${r.name}: ${r.chunks} Abschnitte`; }
+    catch (err) { $('#upload-state').textContent = `${f.name}: ${err.message}`; }
+  }
+  e.target.value = ''; loadDocs();
+};
+
+function renderAnswer(r) {
+  const box = el('div');
+  box.append(el('div', 'a' + (r.grounded ? '' : ' unknown'), r.answer));
+  if (r.sources.length) {
+    const s = el('div', 'sources');
+    for (const src of r.sources) {
+      const d = el('details', 'src');
+      d.append(el('summary', null, `[${src.number}] ${src.doc_name}${src.location ? ', ' + src.location : ''}`));
+      d.append(el('div', null, src.excerpt)); s.append(d);
+    }
+    box.append(s);
+  }
+  const meta = el('div', 'meta'); meta.append(el('span', null, `${r.seconds.toFixed(1)} s`));
+  for (const [label, helpful] of [['👍', true], ['👎', false]]) {
+    const b = el('button', null, label);
+    b.onclick = async () => { await api('/api/feedback', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({answer_id:r.answer_id, helpful})}); meta.lastChild.remove(); meta.lastChild.remove(); meta.append(el('span', null, 'Danke für das Feedback')); };
+    meta.append(b);
+  }
+  box.append(meta); return box;
+}
+
+$('#ask').onsubmit = async e => {
+  e.preventDefault();
+  const q = $('#question').value.trim(); if (!q) return;
+  const chat = $('#chat'); chat.append(el('div', 'q', q));
+  const wait = el('div', 'hint', 'MIRA sucht …'); chat.append(wait);
+  $('#send').disabled = true; $('#question').value = '';
+  try { wait.replaceWith(renderAnswer(await api('/api/ask', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q})}))); }
+  catch (err) { wait.textContent = `Fehler: ${err.message}`; }
+  $('#send').disabled = false; $('#question').focus();
+};
+
+loadStatus(); loadDocs();
+</script>
+</body>
+</html>

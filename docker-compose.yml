@@ -1,0 +1,24 @@
+# Linux mit Intel NPU (Core Ultra). Vorher einmal: ./scripts/setup-npu.sh
+services:
+  ovms:
+    image: ${OVMS_IMAGE:-openvino/model_server:latest-gpu}
+    command: ["--rest_port", "8000", "--config_path", "/models/config.json"]
+    devices:
+      - /dev/accel:/dev/accel
+    group_add:
+      - ${RENDER_GID:-render}
+    volumes:
+      - ./models:/models:rw
+    restart: unless-stopped
+
+  mira:
+    build: .
+    environment:
+      MIRA_OVMS_URL: http://ovms:8000/v3
+    volumes:
+      - ./data:/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ovms
+    restart: unless-stopped
