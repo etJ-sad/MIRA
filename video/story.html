@@ -12,7 +12,9 @@ canvas{display:block;width:100vw;height:56.25vw;max-height:100vh;max-width:177.7
 </style>
 <canvas id="c" width="1920" height="1080"></canvas>
 <script>
-const VO=/*VO*/null, DATA=/*DATA*/null, AUDIO=/*AUDIO*/null;
+const VO=/*VO*/null, DATA=/*DATA*/null, AUDIO=/*AUDIO*/null, VARIANT=/*VARIANT*/'eco';
+// two cuts of the same material: 'eco' is the shared NPU story (with Lumen and Greenforest), 'solo' is MIRA on its own
+const SOLO=VARIANT==='solo';
 const W=1920,H=1080,cv=document.getElementById('c'),g=cv.getContext('2d');
 const F='"SSans","Segoe UI",system-ui,sans-serif', MONO='"Cascadia Mono",Consolas,monospace';
 // Siemens-style palette: deep blue ground, petrol light, the NPU is the only thing that glows
@@ -107,7 +109,7 @@ function scoreBar(x,y,w,s,thr,a,lbl){R(x,y,w,14,{r:7,f:'rgba(120,140,200,.12)',a
   L([[x+w*thr,y-10],[x+w*thr,y+24]],{c:C.amber,lw:2,a});if(lbl)T(lbl,x+w+20,y+14,{s:22,mono:true,c:ok?C.npuHi:C.nok,a})}
 
 // ---------- scenes (one per narration block in script.json) ----------
-const S=[
+const ALL=[
  {id:'cold',see:'The die is drawn by a scanning light, left to right, then holds in the dark.',draw(t,d){ground(t);const p=ease(ramp(t,.6,3.4)),x=lerp(DIE.x-80,DIE.x+DIE.w+80,p);
    g.save();g.beginPath();g.rect(0,0,x,H);g.clip();die(t,{a:1});g.restore();
    if(p>0&&p<1){const gr=g.createLinearGradient(x-120,0,x,0);gr.addColorStop(0,'rgba(0,215,195,0)');gr.addColorStop(1,'rgba(125,255,240,.35)');g.fillStyle=gr;g.fillRect(x-120,DIE.y-40,120,DIE.h+80);
@@ -225,10 +227,10 @@ const S=[
      T('CPU LOAD',x,760,{s:20,c:C.mute,ls:3});R(x+150,740,560,26,{r:5,f:'rgba(120,140,200,.12)'});R(x+150,740,560*cl2/100,26,{r:5,f:cl2>60?C.nok:C.cpu});
      T(`${fmt(cl2,0)} %`,x+820,762,{s:26,al:'right',mono:true,w:700,c:cl2>60?C.nok:C.txt});
      if(watt)T(`package ${fmt(watt,0)} W`,x,812,{s:24,mono:true,c:hot?C.npuHi:C.mute,a:ramp(t,d*.55,d*.65)})};
-   side(120,'CPU · without me',C.cpu,r.answer,r.stamps||[],ct,r.cpu_trace||[],pw.cpu_w,false);
+   side(120,SOLO?'CPU cores':'CPU · without me',C.cpu,r.answer,r.stamps||[],ct,r.cpu_trace||[],pw.cpu_w,false);
    side(980,'NPU',C.npu,h.answer,n.stamps||[],nt,A().cpu.trace||[],pw.npu_w,true);
    const f=ramp(t,d*.8,d*.9);R(560,850,800,64,{r:6,f:'rgba(0,215,195,.12)',s:C.npu,lw:2,a:f});
-   T(nt<ct?`NPU first · ${fmt(ct/nt,1)}× faster · CPU free`:'CPU free for the machine',W/2,892,{s:28,w:700,al:'center',c:C.npuHi,a:f});}},
+   T(nt<ct?`NPU first · ${fmt(ct/nt,1)}× faster`+(SOLO?'':' · CPU free'):SOLO?'cores keep their headroom':'CPU free for the machine',W/2,892,{s:28,w:700,al:'center',c:C.npuHi,a:f});}},
  {id:'unknown',see:'A question the documents cannot answer: best score below the threshold, the LLM is not asked, MIRA says "Weiß ich nicht."',draw(t,d){ground(t,.3);const u=A().unknown,thr=u.min_score||.35;
    bubble(typed(u.question,ramp(t,.2,d*.3))||' ',1780,150,1100,ramp(t,.1,.4));
    const a=ramp(t,d*.32,d*.42);R(140,330,820,420,{r:8,f:C.panel,s:'rgba(0,153,153,.4)',lw:1.5,a});T('BEST MATCH IN THE DOCUMENTS',180,390,{s:22,c:C.mute,ls:3,a});
@@ -254,7 +256,7 @@ const S=[
    const p=ramp(t,.3,d*.7),n=Math.max(2,Math.floor(tr.length*p));if(tr.length>1)L(tr.slice(0,n).map((v,i)=>[lerp(x0,x1,i/(tr.length-1)),lerp(y1,y0,v/100)]),{c:C.cpu,lw:3});
    const a=ramp(t,d*.35,d*.45);label(1540,360,'CPU, median',`${fmt(c.answer_median,0)} %`,{vs:84,mono:true,c:C.npuHi,glow:C.npu,a});
    label(1540,600,'CPU, idle',`${fmt(c.idle_median,0)} %`,{vs:48,mono:true,a:ramp(t,d*.5,d*.6)});
-   const f=ramp(t,d*.75,d*.85);R(1100,900,700,70,{r:6,f:'rgba(0,215,195,.12)',s:C.npu,lw:2,a:f});T('CPU stays free for the machine',1450,946,{s:28,w:700,al:'center',c:C.npuHi,a:f});}},
+   const f=ramp(t,d*.75,d*.85);R(1100,900,700,70,{r:6,f:'rgba(0,215,195,.12)',s:C.npu,lw:2,a:f});T(SOLO?'headroom for the control software':'CPU stays free for the machine',1450,946,{s:28,w:700,al:'center',c:C.npuHi,a:f});}},
  {id:'series',see:'Ten real questions in a row: seconds per answer as bars, a tick when answered from the documents.',draw(t,d){ground(t,.7);const ss=A().series,sm=A().series_summary,mx=Math.max(...ss.map(r=>r.seconds))*1.1||1;
    T(`${sm.questions} QUESTIONS IN A ROW`,170,170,{s:24,c:C.mute,ls:4});
    ss.forEach((r,k)=>{const a=ramp(t,.3+k*(d*.06),.6+k*(d*.06)),y=240+k*62;T(r.question.length>58?r.question.slice(0,56)+' …':r.question,170,y+24,{s:24,a});
@@ -265,21 +267,24 @@ const S=[
  {id:'offline',see:'Factory boundary: tablet, IPC with MIRA on the NPU, documents; the cloud stays outside, crossed out.',draw(t,d){ground(t,.4);const a=ramp(t,.2,.9);
    R(300,240,1000,620,{r:10,s:C.npu,lw:3,a,f:'rgba(0,215,195,.04)'});T('FACTORY NETWORK',330,290,{s:22,c:C.npuHi,ls:4,a});
    [['Tablet · HMI',380],['IPC · MIRA · NPU',740],['Documents',1100]].forEach(([s,x],i)=>{R(x-30,480,260,140,{r:8,f:C.panel,s:i==1?C.npu:'rgba(0,153,153,.4)',lw:2,a});T(s,x+100,560,{s:i==1?24:28,w:700,al:'center',a})});
-   L([[490,550],[710,550]],{c:C.npu,lw:3,a});L([[970,550],[1070,550]],{c:C.npu,lw:3,a});
+   L([[610,550],[710,550]],{c:C.npu,lw:3,a});L([[970,550],[1070,550]],{c:C.npu,lw:3,a});
    const c=ramp(t,d*.15,d*.35);g.save();g.globalAlpha=c;g.strokeStyle=C.dim;g.lineWidth=4;g.beginPath();g.arc(1560,330,70,Math.PI*.9,Math.PI*1.95);g.arc(1650,370,50,Math.PI*1.4,Math.PI*.4);g.lineTo(1480,420);g.arc(1480,370,50,Math.PI*.5,Math.PI*1.3);g.stroke();g.restore();
    T('cloud',1570,480,{s:24,al:'center',c:C.dim,a:c});const x=ramp(t,d*.35,d*.5);L([[1440,270],[1440+260*x,270+200*x]],{c:C.nok,lw:6,a:c});L([[1700,270],[1700-260*x,270+200*x]],{c:C.nok,lw:6,a:c});
-   ['no internet','no telemetry','manuals stay local'].forEach((s,i)=>chip(1380,560+i*70,s,C.ok,ramp(t,d*.45+i*.3,d*.45+i*.3+.4)));}},
- {id:'work',see:'Back to the die: the NPU works, CPU calm; LUMEN sees, MIRA explains.',draw(t,d){ground(t,1);die(t,{cpu:.35,gpu:.3,npu:1,npuAct:1});
+   (SOLO?['on site','no internet connection','documents stay local']:['no internet','no telemetry','manuals stay local']).forEach((s,i)=>chip(1380,560+i*70,s,C.ok,ramp(t,d*.45+i*.3,d*.45+i*.3+.4)));}},
+ {id:'work',see:'Back to the die: the NPU works, CPU calm; LUMEN sees, MIRA explains, GREENFOREST looks after the machine.',draw(t,d){ground(t,1);die(t,{cpu:.35,gpu:.3,npu:1,npuAct:1});
    const a=ramp(t,.4,1);R(BL.npu.x,BL.npu.y+BL.npu.h+30,BL.npu.w,70,{r:6,f:C.panel,s:C.npu,lw:2,a});
    const pts=[];for(let i=0;i<60;i++){const v=.55+.35*Math.sin(i*.9+t*6)*Math.sin(i*.31+t*2);pts.push([BL.npu.x+20+i*6.6,BL.npu.y+BL.npu.h+88-38*v])}L(pts,{c:C.npuHi,lw:2.5,a,glow:C.npu});
-   chip(BL.cpu.x,BL.cpu.y-60,'LUMEN · sees',C.mute,ramp(t,d*.45,d*.55));chip(BL.cpu.x+230,BL.cpu.y-60,'MIRA · explains',C.npu,ramp(t,d*.65,d*.75));}},
+   chip(BL.cpu.x,BL.cpu.y-60,'LUMEN · sees',C.mute,ramp(t,d*.3,d*.4));chip(BL.cpu.x+230,BL.cpu.y-60,'MIRA · explains',C.npu,ramp(t,d*.45,d*.55));
+   chip(BL.cpu.x+500,BL.cpu.y-60,'GREENFOREST · looks after the machine',C.mute,ramp(t,d*.62,d*.72));}},
  {id:'end',see:'End card: MIRA, tagline, Siemens logo, proof-of-concept note.',draw(t,d){ground(t,.5);const a=ramp(t,.2,1);
-   T('MIRA',W/2,H/2-20,{s:170,w:700,al:'center',ls:40,a,glow:C.npu,gb:36});T('Maintenance answers on the NPU',W/2,H/2+60,{s:40,al:'center',c:C.npuHi,a:ramp(t,.6,1.3)});
+   T('MIRA',W/2,H/2-20,{s:170,w:700,al:'center',ls:40,a,glow:C.npu,gb:36});T(SOLO?'Answers from your own manuals.':'Maintenance answers on the NPU',W/2,H/2+60,{s:40,al:'center',c:C.npuHi,a:ramp(t,.6,1.3)});
    if(LOGO){const w=300,h=w*LOGO.height/LOGO.width;g.save();g.globalAlpha=ramp(t,1,1.8);g.drawImage(LOGO,W/2-w/2,H-230,w,h);g.restore()}else T('SIEMENS',W/2,H-180,{s:56,w:700,al:'center',c:C.petrol,ls:4,a:ramp(t,1,1.8)});
    T(PRE()?'PREVIEW · placeholder numbers, not measured':`Proof of concept · measured on ${A().host} · ${A().cpu_name} · ${short(A().llm_model)} on the NPU`,W/2,H-60,{s:20,al:'center',c:PRE()?C.amber:C.dim,a:ramp(t,1.2,2)});}},
 ];
 
-S.splice(0,S.length,...S.filter(s=>!s.need||A()[s.need]));   // same rule as narration.py
+const ORDER=SOLO?['night','mira','read','ask','answer','source','unknown','app','me','proof','speed','race','cpu-free','series','offline','end']
+  :['cold','cpu-gpu','eyes','night','llm','me','mira','read','ask','answer','source','speed','race','unknown','app','proof','cpu-free','series','offline','work','end'];
+const S=ORDER.map(id=>ALL.find(s=>s.id===id)).filter(s=>!s.need||A()[s.need]);   // same rule as narration.py
 
 // ---------- timeline ----------
 let starts=[],durs=[],total=0;
@@ -289,7 +294,8 @@ function subtitle(i,lt){if(!VO||S[i].id==='end')return;const rows=VO.timeline[i]
   const [o,d]=rows[k],s=VO.text[i][k],a=Math.min(ramp(lt,o-.08,o+.1),ramp(o+d+.12-lt,0,.15));
   const gr=g.createLinearGradient(0,H-200,0,H);gr.addColorStop(0,'rgba(0,0,20,0)');gr.addColorStop(1,'rgba(0,0,20,.55)');g.fillStyle=gr;g.fillRect(0,H-200,W,200);
   T(s,W/2,H-62,{s:36,al:'center',a,c:'#f4f6ff',glow:'rgba(0,0,0,.9)',gb:12})}
-const IX=id=>S.findIndex(s=>s.id===id),CHAP=[['cold','01','The third processor'],['mira','02','MIRA'],['read','03','At work'],['proof','04','Proof'],['offline','05','In the factory'],['work','06','']].map(c=>[IX(c[0]),c[1],c[2]]);
+const IX=id=>S.findIndex(s=>s.id===id),CHAP=(SOLO?[['night','01','Two forty-seven'],['mira','02','MIRA'],['me','03','Under the hood'],['offline','04','On site'],['end','05','']]
+  :[['cold','01','The third processor'],['mira','02','MIRA'],['read','03','At work'],['proof','04','Proof'],['offline','05','In the factory'],['work','06','']]).map(c=>[IX(c[0]),c[1],c[2]]);
 function hud(t,i){const L4=IX('mira');{const gr=g.createLinearGradient(0,0,0,150);gr.addColorStop(0,'rgba(0,0,20,.75)');gr.addColorStop(1,'rgba(0,0,20,0)');g.fillStyle=gr;g.fillRect(0,0,W,150)}const ch=[...CHAP].reverse().find(c=>i>=c[0]),ca=Math.min(1,ramp(t-starts[ch[0]],.4,1.2))*(i>=S.length-1?0:1);
     if(ch[2]&&i>=IX('mira')){T(ch[1],48,112,{s:20,c:C.npu,mono:true,a:ca});T(ch[2].toUpperCase(),92,112,{s:20,c:C.mute,ls:4,a:ca})}
   if(i<IX('mira')){if(ch[2])T(ch[1]+'  '+ch[2].toUpperCase(),48,64,{s:20,c:C.mute,ls:4,a:ca*ramp(t,2.5,3.5)});return}const a=i>=S.length-1?1-ramp(t-starts[i],0,.6):ramp(t-starts[L4],0,1);

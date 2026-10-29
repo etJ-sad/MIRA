@@ -87,13 +87,13 @@
 ],
 [
 "But don't take my word for it.",
-"Both models are compiled for me. Target device: NPU.",
+"Both models are compiled for me explicitly. Target device: NPU. No fallback.",
 "And the model server confirms it. Available. On the NPU."
 ],
 [
 "And the CPU?",
 "While I write the answer, it stays at {cpu} percent.",
-"It stays free for the machine."
+"The CPU stays free for the machine."
 ],
 [
 "So we asked {questions} questions in a row.",
@@ -106,7 +106,8 @@
 ],
 [
 "Every new industrial PC already has me.",
-"With Lumen, I see. With MIRA, I explain."
+"With Lumen, I see. With MIRA, I explain.",
+"With Greenforest, I look after the machine I live in. One NPU. Three jobs."
 ],
 [
 "MIRA.",

@@ -39,7 +39,7 @@ hz = lambda m: 440.0 * 2 ** ((m - 69) / 12)  # noqa: E731
 beat = 60 / 100
 bar = 4 * beat
 S = lambda i: starts[min(i, len(starts) - 1)]  # noqa: E731
-I = ids.index                           # scene index by id, so new scenes do not shift the score
+I = lambda x: ids.index(x) if x in ids else ids.index('end')   # scene index by id; a scene missing from a cut maps to the end card  # noqa: E731
 
 
 def lp(x, fc, order=2):

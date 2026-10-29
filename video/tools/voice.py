@@ -26,7 +26,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 M, out = sys.argv[1], sys.argv[2]
 os.makedirs(out, exist_ok=True)
 k = Kokoro(os.path.join(M, "kokoro-v1.0.onnx"), os.path.join(M, "voices-v1.0.bin"))
-V = k.get_voice_style("af_heart")
+VARIANT = os.environ.get("MIRA_VARIANT", "eco")   # eco: the shared NPU narrator; solo: MIRA on its own, another voice
+V = k.get_voice_style("bf_emma" if VARIANT == "solo" else "af_heart")
+LANG = "en-gb" if VARIANT == "solo" else "en-us"
 SAY = {"NPU": "N P U", "CPU": "C P U", "GPU": "G P U", "PLC": "P L C", "OPC UA": "O P C U A", "MQTT": "M Q T T",
        "OpenVINO": "Open Veeno", "Lumen": "Loomen", "MIRA": "Meera", "AI": "A I", "PC": "P C", "HMI": "H M I"}
 LEAD, GAP, FIRST = 0.45, 0.42, 1.6   # seconds before the first sentence, between sentences, extra lead of scene 0
@@ -39,15 +41,15 @@ def say(s):
 
 
 sys.path.insert(0, HERE)
-from narration import script  # noqa: E402
+from narration import script, script_path  # noqa: E402
 
-S = script(Path(out).parent, os.path.join(HERE, "..", "script.json"))
+S = script(Path(out).parent, script_path(Path(HERE).parent))
 tl = []
 for i, sents in enumerate(S):
     off = LEAD + (FIRST if i == 0 else 0)
     rows = []
     for j, s in enumerate(sents):
-        a, sr = k.create(say(s), voice=V, speed=0.95, lang="en-us")
+        a, sr = k.create(say(s), voice=V, speed=0.95, lang=LANG)
         a = np.asarray(a, dtype=np.float64)
         nz = np.where(np.abs(a) > 0.008)[0]
         a = a[max(0, nz[0] - 120):nz[-1] + 1800] if len(nz) else a

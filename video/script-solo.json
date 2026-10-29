@@ -1,0 +1,89 @@
+[
+[
+"Two forty-seven in the morning. Line three goes quiet.",
+"On the panel: E 4 17.",
+"The manual runs to hundreds of pages, and the one colleague who knows this fault is on holiday."
+],
+[
+"MIRA.",
+"A maintenance assistant that answers from your own documents, on the industrial PC beside the line."
+],
+[
+"It starts by reading.",
+"A manual, a fault code list, {tickets} old tickets.",
+"{chunks} passages indexed in {ingest_s} seconds."
+],
+[
+"The technician types the question, in plain German.",
+"MIRA finds the matching passages in {search_ms} milliseconds."
+],
+[
+"The answer names the cause, then the steps, in order.",
+"Every statement points to its source."
+],
+{
+"need": "source",
+"say": [
+"Here, page {page} of the manual.",
+"The exact passage, one click away."
+]
+},
+[
+"And if the documents have nothing on it?",
+"MIRA says: I don't know.",
+"No invented torque values. No guessed part numbers."
+],
+[
+"It runs as a web page.",
+"On a tablet, on the HMI panel, or on the industrial PC itself."
+],
+[
+"Behind it: a language model with {llm_b} billion parameters, and a second model for search.",
+{
+"if": "power",
+"say": "Both run on the neural processing unit of the Intel chip, with the whole package at {npu_w} watts.",
+"else": "Both run on the neural processing unit of the Intel chip."
+}
+],
+[
+"The model files are compiled for that unit, with no silent fallback.",
+"The model server lists both as available there."
+],
+[
+"First words appear after {ttft} seconds.",
+"Then {tps} tokens per second, quick enough to read along as it writes."
+],
+{
+"need": "race",
+"say": [
+"Now the same prompt on the processor cores instead.",
+{
+"if": "npu_faster",
+"say": "They take {race_ratio} times as long.",
+"else": "They are about as quick."
+},
+"But they run at {race_cpu} percent load. With the neural unit doing the work, {npu_cpu}.",
+{
+"if": "power_race",
+"say": "{cpu_w} watts for the package, against {npu_w}."
+}
+]
+},
+[
+"Across the answer, total processor load stays near {cpu} percent.",
+"The control software keeps its headroom."
+],
+[
+"Ten more questions, one after another.",
+"{grounded} answered from the documents, each with its sources.",
+"Typically {median} seconds per answer."
+],
+[
+"Documents, questions and answers stay on site.",
+"No internet connection required."
+],
+[
+"MIRA.",
+"Answers from your own manuals."
+]
+]

@@ -5,13 +5,21 @@ when that measurement exists (story.html drops the same scenes). A sentence is a
 {"if": "<flag>", "say": "...", "else": "..."} for a line that depends on the result ("else" may be left out).
 """
 import json
+import os
 import re
 import statistics
 from pathlib import Path
 
 
+def script_path(here):
+    """script.json for the ecosystem cut, script-solo.json for the standalone cut ($MIRA_VARIANT)."""
+    return Path(here) / ("script-solo.json" if os.environ.get("MIRA_VARIANT", "eco") == "solo" else "script.json")
+
+
 def load(work):
-    return json.loads((Path(work) / "assets.json").read_text(encoding="utf-8"))
+    w = Path(work)
+    w = w if (w / "assets.json").exists() else w.parent      # measured results are shared by both cuts
+    return json.loads((w / "assets.json").read_text(encoding="utf-8"))
 
 
 def values(a):
@@ -23,7 +31,7 @@ def values(a):
     return {"llm_b": b.group(1) if b else "", "chunks": a["ingest"]["chunks"], "tickets": tickets,
             "ingest_s": f"{a['ingest']['seconds']:.0f}" if a["ingest"]["seconds"] >= 10 else f"{a['ingest']['seconds']:.1f}",
             "search_ms": f"{a['search']['ms']:.0f}", "ttft": f"{h.get('ttft_s') or 0:.1f}", "tps": f"{h.get('tokens_per_s') or 0:.0f}",
-            "cpu": f"{a['cpu']['answer_median']:.0f}", "npu_cpu": f"{statistics.median(trace):.0f}",
+            "cpu": f"{a['cpu']['answer_median']:.0f}", "race_ratio": f"{(r.get('total_s') or 0) / (h.get('total_s') or 1):.1f}", "npu_cpu": f"{statistics.median(trace):.0f}",
             "questions": a["series_summary"]["questions"], "grounded": a["series_summary"]["grounded"],
             "median": f"{a['series_summary']['median_s']:.1f}", "page": src.get("page", ""),
             "race_cpu": f"{r.get('cpu_median') or 0:.0f}", "race_tps": f"{r.get('tokens_per_s') or 0:.0f}",
