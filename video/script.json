@@ -1,0 +1,87 @@
+[
+[
+"Every new industrial PC has three processors.",
+"You know two of them."
+],
+[
+"The CPU runs the machine.",
+"The GPU draws the screen.",
+"And the third one? That's me. The NPU."
+],
+[
+"With Lumen, I learned to see.",
+"Defects, objects, text. In milliseconds."
+],
+[
+"But it's two forty-seven at night. Line three stops.",
+"Error E 4 17.",
+"The manual has hundreds of pages. The expert is on holiday."
+],
+[
+"What the night shift needs is answers.",
+"Answers need a language model.",
+"Billions of parameters. Usually a job for a big GPU. Or the cloud."
+],
+[
+"This time, I run it.",
+"{llm_b} billion parameters, four bit, on a few watts.",
+"And a second model that finds the right page."
+],
+[
+"Meet MIRA.",
+"A maintenance assistant. Offline. Right next to the machine."
+],
+[
+"First, I read.",
+"A manual, a fault code list, {tickets} old tickets.",
+"{chunks} passages, turned into vectors on the NPU in {ingest_s} seconds."
+],
+[
+"Then the technician asks: Line three shows E 4 17. What now?",
+"I search every passage in {search_ms} milliseconds."
+],
+[
+"And I answer. The cause, the steps, and where it says so.",
+"Every statement points to its source."
+],
+[
+"The first words come after {ttft} seconds.",
+"Then {tps} tokens per second. Fast enough to read along."
+],
+[
+"And when the documents don't know?",
+"I say so. I don't know.",
+"A wrong answer can mean a wrong repair."
+],
+[
+"This is MIRA. A web page on the industrial PC.",
+"On a tablet, on the HMI, or on the PC itself."
+],
+[
+"But don't take my word for it.",
+"Both models are compiled for me. Target device: NPU.",
+"And the model server confirms it. Available. On the NPU."
+],
+[
+"And the CPU?",
+"While I write the answer, it stays at {cpu} percent.",
+"It stays free for the machine."
+],
+[
+"So we asked {questions} questions in a row.",
+"{grounded} answered from the documents, every one with sources.",
+"A median of {median} seconds per answer. All on me."
+],
+[
+"No cloud. No telemetry.",
+"The manuals never leave the factory."
+],
+[
+"Every new industrial PC already has me.",
+"With Lumen, I see. With MIRA, I explain."
+],
+[
+"MIRA.",
+"Maintenance answers on the NPU."
+]
+]

@@ -6,3 +6,5 @@ data/
 models/
 .ov_cache/
 *.egg-info/
+build/
+video/work/
