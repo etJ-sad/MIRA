@@ -23,7 +23,7 @@ const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)), ease=x=>{x=cl(x);return x<.5?4*
 let IM={}, LOGO=null;
 function load(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
 window.kReady=(async()=>{
-  const files=['app_answer.jpg'];
+  const files=['app_answer.jpg','source_page.png'];
   await Promise.all(files.map(async f=>IM[f]=await load((DATA.images&&DATA.images[f])||'assets/'+f)));
   if(window.MIRA_LOGO_URL)LOGO=await load(window.MIRA_LOGO_URL);
   await document.fonts.ready;return true})();
@@ -155,7 +155,7 @@ const S=[
      chip(1640,y+28,dv[name]||'NPU',C.npu,a)};
    card(250,0,A().llm_model,'language model',`${(A().llm_model.match(/(\d+(?:\.\d+)?)B/)||['',''])[1]} billion parameters · int4 weights`,.22);
    card(520,1,A().embed_model,'search model','turns text into vectors · finds the right page',.62);
-   T('a few watts',1170,830,{s:26,c:C.npuHi,a:ramp(t,d*.4,d*.5),glow:C.npu});}},
+   const pw=(A().power||{}).npu_w;if(pw)T(`whole chip · ${fmt(pw,0)} W`,1170,830,{s:26,c:C.npuHi,a:ramp(t,d*.4,d*.5),glow:C.npu,mono:true});}},
  {id:'mira',see:'MIRA wordmark, light sweep, three chips.',draw(t,d){ground(t,.6);const a=ramp(t,.2,1);
    g.save();g.globalAlpha=.3*(1-ramp(t,0,1.2))+.05;die(t,{cpu:.2,gpu:.2,npu:1,npuAct:.4});g.restore();
    const sx=lerp(-400,W+400,ease(ramp(t,.1,1.4)));const gr=g.createLinearGradient(sx-300,0,sx+300,0);gr.addColorStop(0,'rgba(0,215,195,0)');gr.addColorStop(.5,'rgba(125,255,240,.35)');gr.addColorStop(1,'rgba(0,215,195,0)');
@@ -188,6 +188,22 @@ const S=[
    chip(300,280,'on the NPU',C.npu);const n=replay(h,el),txt=h.answer.slice(0,n);para(txt+(n<h.answer.length&&Math.floor(t*3)%2?'▍':''),180,370,1560,{s:30,lh:44});
    T(`${fmt(Math.min(el,tot),1)} s`+(sp>1.05?`  ·  replay ×${fmt(sp,1)}`:''),1740,306,{s:22,al:'right',mono:true,c:C.mute});
    const sa=ramp(t,d*.7,d*.8);let x=180;h.sources.forEach((s,i)=>{x+=chip(x,780,`[${s.number}] ${s.doc}${s.location?' · '+s.location:''}`,C.npuHi,ramp(t,d*.7+i*.2,d*.7+i*.2+.3))+16});}},
+ {id:'source',need:'source',see:'The cited manual page slides in; the camera pushes onto the passage, which lights up; a line ties it to the [n] in the answer.',draw(t,d){ground(t,.5);const sp=A().source,im=IM[sp.file];
+   const ph=860,pw=ph*sp.w/sp.h,sc=ph/sp.h,px=lerp(W+80,980,eo(ramp(t,.1,1.1))),py=130,hl=sp.highlight;
+   const z=1+.55*ease(ramp(t,d*.35,d*.75)),fx=hl?px+(hl[0]+hl[2])/2*sc:px+pw/2,fy=hl?py+(hl[1]+hl[3])/2*sc:py+ph/2;
+   // left: the answer, its citation glowing
+   const a=ramp(t,.1,.6);R(120,300,700,420,{r:8,f:C.panel,s:'rgba(0,153,153,.4)',lw:1.5,a});T('MIRA',160,360,{s:24,w:700,c:C.npuHi,ls:6,a});
+   para(A().hero.answer.split('\n').slice(0,2).join('\n'),160,420,620,{s:24,lh:36,c:C.mute,a});
+   const ca=ramp(t,d*.15,d*.25);chip(160,640,`[${sp.number}] ${sp.doc} · Seite ${sp.page}`,C.npuHi,ca);
+   g.save();g.translate(fx,fy);g.scale(z,z);g.translate(-fx,-fy);
+   R(px-10,py-10,pw+20,ph+20,{r:6,f:'#0b0f30',glow:'rgba(0,0,0,.8)',gb:60});if(im)g.drawImage(im,px,py,pw,ph);
+   if(hl){const ha=ramp(t,d*.3,d*.45),x0=px+hl[0]*sc,y0=py+hl[1]*sc,w=(hl[2]-hl[0])*sc,h=(hl[3]-hl[1])*sc;
+     g.save();g.beginPath();g.rect(px,py,pw,ph);g.rect(x0,y0,w,h);g.fillStyle=`rgba(0,0,30,${.55*ha})`;g.fill('evenodd');g.restore();
+     R(x0,y0,w,h,{r:4,f:`rgba(0,215,195,${.10*ha})`,s:C.npu,lw:3/z,a:ha,glow:C.npu,gb:30});
+     const sy=y0+h*ramp(t,d*.3,d*.5);if(ha>0&&ha<1)L([[x0,sy],[x0+w,sy]],{c:C.npuHi,lw:2/z,glow:C.npu})}
+   g.restore();
+   if(hl){const la=ramp(t,d*.5,d*.6)*(1-ramp(t,d*.85,d*.95)),x0=px+hl[0]*sc,y0=py+(hl[1]+hl[3])/2*sc;L([[600,660],[x0,y0]],{c:C.npu,lw:2,dash:[8,8],a:la,glow:C.npu})}
+   T('THE SOURCE · REAL PAGE, REAL PASSAGE',120,250,{s:22,c:C.mute,ls:4,a});}},
  {id:'speed',see:'Every generated token as a tick on a time axis (real timestamps); first token, then the steady stream.',draw(t,d){ground(t,.5);const L0=A().hero.llm||{},st=L0.stamps||[],tot=Math.max(L0.total_s||1,.1);
    const x0=170,x1=1470,y=560,p=ramp(t,.4,d*.75),now=tot*p;T('THE ANSWER, TOKEN BY TOKEN · measured timestamps',x0,220,{s:22,c:C.mute,ls:3});
    L([[x0,y],[x1,y]],{c:'rgba(120,140,200,.35)',lw:2});for(let s=0;s<=tot;s+=Math.max(1,Math.round(tot/8))){const xx=lerp(x0,x1,s/tot);L([[xx,y+8],[xx,y+20]],{c:C.dim,lw:2});T(s+' s',xx,y+52,{s:18,al:'center',mono:true,c:C.dim})}
@@ -197,6 +213,22 @@ const S=[
    const a1=ramp(t,d*.25,d*.35),a2=ramp(t,d*.55,d*.65);
    label(1560,330,'first token',`${fmt(L0.ttft_s||0,1)} s`,{vs:72,mono:true,a:a1});label(1560,540,'tokens / second',`${fmt(L0.tokens_per_s||0,1)}`,{vs:72,mono:true,c:C.npuHi,glow:C.npu,a:a2});
    label(1560,750,'tokens',`${fmt(L0.tokens||st.length)}`,{vs:44,mono:true,a:a2});T(`prompt with sources: ${fmt(L0.prompt_tokens||0)} tokens`,x0,y+120,{s:22,c:C.mute,mono:true,a:a1});}},
+ {id:'race',need:'race',see:'Split screen, one clock: the same prompt on the CPU and on the NPU, both answers stream at their measured timestamps; CPU load gauges and package watts below.',draw(t,d){ground(t,.5);
+   const h=A().hero,n=h.llm||{},r=A().race,pw=A().power||{},nt=n.total_s||1,ct=r.total_s||1,sp=Math.max(1,Math.max(nt,ct)/(d*.72)),el=Math.max(0,(t-.7)*sp);
+   T('SAME MODEL · SAME PROMPT · ONE CLOCK',W/2,150,{s:24,al:'center',c:C.mute,ls:6});
+   T(`${fmt(Math.min(el,Math.max(nt,ct)),1)} s`+(sp>1.05?`  ·  replay ×${fmt(sp,1)}`:''),W/2,200,{s:30,al:'center',mono:true,w:700});
+   const side=(x,lbl,col,txt,st,tot,trace,watt,hot)=>{const done=el>=tot,k=st.filter(v=>v<=el).length,shown=st.length?Math.round(txt.length*k/st.length):0;
+     R(x,230,820,470,{r:10,f:C.panel,s:col,lw:hot?3:2,glow:hot?col:null,gb:hot?24:0});T(lbl,x+30,296,{s:34,w:700,c:col,glow:hot?col:null});
+     T(done?`✓ ${fmt(tot,1)} s`:k?`${k} tokens`:'thinking …',x+790,296,{s:26,al:'right',mono:true,c:done?C.ok:C.mute});
+     g.save();g.beginPath();g.rect(x+20,320,780,370);g.clip();para(txt.slice(0,shown),x+30,360,760,{s:22,lh:32});g.restore();
+     const ci=Math.min(trace.length-1,Math.floor(Math.min(el,tot)*10)),cv=trace.length?trace[Math.max(0,ci)]:0,cl2=el>tot?0:cv;
+     T('CPU LOAD',x,760,{s:20,c:C.mute,ls:3});R(x+150,740,560,26,{r:5,f:'rgba(120,140,200,.12)'});R(x+150,740,560*cl2/100,26,{r:5,f:cl2>60?C.nok:C.cpu});
+     T(`${fmt(cl2,0)} %`,x+820,762,{s:26,al:'right',mono:true,w:700,c:cl2>60?C.nok:C.txt});
+     if(watt)T(`package ${fmt(watt,0)} W`,x,812,{s:24,mono:true,c:hot?C.npuHi:C.mute,a:ramp(t,d*.55,d*.65)})};
+   side(120,'CPU · without me',C.cpu,r.answer,r.stamps||[],ct,r.cpu_trace||[],pw.cpu_w,false);
+   side(980,'NPU',C.npu,h.answer,n.stamps||[],nt,A().cpu.trace||[],pw.npu_w,true);
+   const f=ramp(t,d*.8,d*.9);R(560,850,800,64,{r:6,f:'rgba(0,215,195,.12)',s:C.npu,lw:2,a:f});
+   T(nt<ct?`NPU first · ${fmt(ct/nt,1)}× faster · CPU free`:'CPU free for the machine',W/2,892,{s:28,w:700,al:'center',c:C.npuHi,a:f});}},
  {id:'unknown',see:'A question the documents cannot answer: best score below the threshold, the LLM is not asked, MIRA says "Weiß ich nicht."',draw(t,d){ground(t,.3);const u=A().unknown,thr=u.min_score||.35;
    bubble(typed(u.question,ramp(t,.2,d*.3))||' ',1780,150,1100,ramp(t,.1,.4));
    const a=ramp(t,d*.32,d*.42);R(140,330,820,420,{r:8,f:C.panel,s:'rgba(0,153,153,.4)',lw:1.5,a});T('BEST MATCH IN THE DOCUMENTS',180,390,{s:22,c:C.mute,ls:3,a});
@@ -246,6 +278,8 @@ const S=[
    if(LOGO){const w=300,h=w*LOGO.height/LOGO.width;g.save();g.globalAlpha=ramp(t,1,1.8);g.drawImage(LOGO,W/2-w/2,H-230,w,h);g.restore()}else T('SIEMENS',W/2,H-180,{s:56,w:700,al:'center',c:C.petrol,ls:4,a:ramp(t,1,1.8)});
    T(PRE()?'PREVIEW · placeholder numbers, not measured':`Proof of concept · measured on ${A().host} · ${A().cpu_name} · ${short(A().llm_model)} on the NPU`,W/2,H-60,{s:20,al:'center',c:PRE()?C.amber:C.dim,a:ramp(t,1.2,2)});}},
 ];
+
+S.splice(0,S.length,...S.filter(s=>!s.need||A()[s.need]));   // same rule as narration.py
 
 // ---------- timeline ----------
 let starts=[],durs=[],total=0;

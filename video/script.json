@@ -24,7 +24,11 @@
 ],
 [
 "This time, I run it.",
-"{llm_b} billion parameters, four bit, on a few watts.",
+{
+"if": "power",
+"say": "{llm_b} billion parameters, four bit. The whole chip at {npu_w} watts.",
+"else": "{llm_b} billion parameters, four bit."
+},
 "And a second model that finds the right page."
 ],
 [
@@ -44,10 +48,34 @@
 "And I answer. The cause, the steps, and where it says so.",
 "Every statement points to its source."
 ],
+{
+"need": "source",
+"say": [
+"Not a guess.",
+"Page {page} of the manual. Exactly this passage."
+]
+},
 [
 "The first words come after {ttft} seconds.",
 "Then {tps} tokens per second. Fast enough to read along."
 ],
+{
+"need": "race",
+"say": [
+"Now the same question on a PC without me.",
+"Same model. Same prompt. On the CPU.",
+{
+"if": "npu_faster",
+"say": "I finish first.",
+"else": "The CPU keeps up."
+},
+"But look at it. The CPU runs at {race_cpu} percent. With me, it stays at {npu_cpu}.",
+{
+"if": "power_race",
+"say": "{cpu_w} watts against {npu_w}."
+}
+]
+},
 [
 "And when the documents don't know?",
 "I say so. I don't know.",

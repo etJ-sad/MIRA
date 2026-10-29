@@ -2,7 +2,7 @@
 .SYNOPSIS
   Rebuilds video\mira-story.mp4: real MIRA results on the NPU -> narration -> timing -> voice processing, music and mix -> frames -> MP4.
   Needs the NPU and OVMS with both MIRA models (scripts\setup-npu.ps1 once), and a build venv for the video tools:
-    py -3.12 -m venv build\video-venv; build\video-venv\Scripts\pip install -e . playwright kokoro-onnx soundfile imageio-ffmpeg numpy psutil reportlab
+    py -3.12 -m venv build\video-venv; build\video-venv\Scripts\pip install -e . playwright kokoro-onnx soundfile imageio-ffmpeg numpy psutil reportlab pypdfium2 openvino-genai
   OVMS is started here when it is not running yet. Rendering uses the installed Edge or Chrome. About 15 minutes
   (the speech model download adds ~340 MB on the first run).
   -Preview: no NPU needed, simulated models; every frame is marked as placeholder numbers.

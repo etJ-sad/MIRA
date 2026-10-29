@@ -149,8 +149,8 @@ arpL, arpR = arp.copy(), arp * 0.6
 for r in range(1, 5):
     (arpR if r % 2 else arpL)[dly * r:] += arp[:-dly * r] * 0.38 ** r
 
-# risers and impacts: MIRA, the speed, the question series, the end card
-for ci in (I('mira'), I('speed'), I('series'), I('end')):
+# risers and impacts: MIRA, the race (or the speed), the question series, the end card
+for ci in (I('mira'), I('race') if 'race' in ids else I('speed'), I('series'), I('end')):
     j = sx(S(ci))
     n = sx(2.2)
     tt = np.arange(n) / SR

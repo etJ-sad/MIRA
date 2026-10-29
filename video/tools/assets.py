@@ -2,7 +2,11 @@
 
 usage: python video/tools/assets.py <work dir>              needs OVMS running with LLM and embeddings on the NPU
        python video/tools/assets.py <work dir> --preview    no NPU: simulated models, every number is a placeholder
-writes <work>/assets.json and <work>/assets/app_answer.jpg
+writes <work>/assets.json, <work>/assets/app_answer.jpg and <work>/assets/source_page.png
+
+The race runs the same LLM files with the same prompt on the CPU (openvino_genai), the way it would run on a PC
+without an NPU. Power is the SoC package power from the Windows "Energy Meter" counters (CPU, GPU and NPU share
+the package), sampled once a second; without those counters the video leaves power out.
 
 Run with the video venv, which has MIRA installed (pip install -e .). The demo documents in video/demo/docs are
 read exactly like customer documents; the answers shown in the video are the ones MIRA gives here.
@@ -60,6 +64,7 @@ class TimedOvms(OvmsClient):
         self.last = {}
 
     def chat(self, messages, max_tokens):
+        self.messages = messages
         body = {"model": self.settings.llm_model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.1,
                 "stream": True, "stream_options": {"include_usage": True}, "chat_template_kwargs": {"enable_thinking": False}}
         t0, stamps, parts, usage = time.perf_counter(), [], [], None
@@ -104,6 +109,7 @@ class FakeOvms:
         return out
 
     def chat(self, messages, max_tokens):
+        self.messages = messages
         if "Anzugsmoment" in messages[-1]["content"]:
             return "Weiß ich nicht."
         text = ("Ursache: Übertemperatur am Spindelmotor, meist eine verstopfte Filtermatte am Schaltschranklüfter M7 [1][2].\n"
@@ -142,6 +148,97 @@ class CpuMeter:
     def __exit__(self, *exc):
         self._on = False
         self._t.join()
+
+
+class PowerMeter:
+    """SoC package power in watts, once a second, from the Windows Energy Meter counters (RAPL); empty when absent."""
+
+    def __enter__(self):
+        self.samples = []
+        try:
+            self._p = subprocess.Popen(["typeperf", r"\Energy Meter(*)\Power", "-si", "1"], stdout=subprocess.PIPE,
+                                       stderr=subprocess.DEVNULL, text=True)
+        except OSError:
+            self._p = None
+            return self
+        self._t = threading.Thread(target=self._run, daemon=True)
+        self._t.start()
+        return self
+
+    def _run(self):
+        col = None
+        for line in self._p.stdout:
+            cells = [c.strip('"') for c in line.strip().split('","')]
+            if col is None and len(cells) > 1 and "Energy Meter" in line:
+                col = next((i for i, c in enumerate(cells) if "PKG" in c.upper()), None)
+                continue
+            if col is not None and len(cells) > col:
+                try:
+                    self.samples.append(round(float(cells[col]) / 1000, 2))   # mW -> W
+                except ValueError:
+                    pass
+
+    def __exit__(self, *exc):
+        if self._p:
+            self._p.terminate()
+            self._t.join(timeout=3)
+
+    @property
+    def median(self):
+        return round(statistics.median(self.samples), 1) if self.samples else None
+
+
+def cpu_race(messages, model_dir, max_tokens):
+    """The same LLM files and the same prompt on the CPU, streamed, so both runs can be shown side by side."""
+    import openvino_genai as ov_genai
+    pipe = ov_genai.LLMPipeline(str(model_dir), "CPU")
+    tok = pipe.get_tokenizer()
+    msgs = [dict(m) for m in messages]
+    msgs[-1]["content"] += " /no_think"               # Qwen3: answer directly, as MIRA asks OVMS to
+    prompt = tok.apply_chat_template(msgs, add_generation_prompt=True)
+    cfg = ov_genai.GenerationConfig()
+    cfg.max_new_tokens, cfg.do_sample = max_tokens, False
+    pipe.generate("Hallo", ov_genai.GenerationConfig(max_new_tokens=4))   # warm-up, as the NPU model is warm too
+    stamps, parts = [], []
+
+    def stream(piece):
+        stamps.append(time.perf_counter() - t0)
+        parts.append(piece)
+        return False                                   # keep going
+
+    with CpuMeter() as cm, PowerMeter() as pm:
+        t0 = time.perf_counter()
+        pipe.generate(prompt, cfg, stream)
+        total = time.perf_counter() - t0
+    gen = stamps[-1] - stamps[0] if len(stamps) > 1 else 0
+    text = _THINK.sub("", "".join(parts)).strip()
+    return {"device": "CPU", "answer": text, "ttft_s": round(stamps[0], 3) if stamps else None, "total_s": round(total, 3),
+            "tokens": len(stamps), "tokens_per_s": round((len(stamps) - 1) / gen, 2) if gen else None,
+            "stamps": [round(x, 3) for x in stamps], "cpu_trace": cm.samples, "cpu_median": round(statistics.median(cm.samples), 1),
+            "power_w": pm.median, "power_trace": pm.samples}
+
+
+def source_page(pdf, page_no, code, name):
+    """Renders the cited manual page and finds the band from the fault code's heading to the next code."""
+    import pypdfium2 as pdfium
+    doc = pdfium.PdfDocument(str(pdf))
+    page = doc[page_no - 1]
+    pw, ph = page.get_size()
+    scale = 1100 / pw
+    page.render(scale=scale).to_pil().save(A / name)
+    tp = page.get_textpage()
+    text = tp.get_text_range()
+    heads = [(m.start(), m.group(0)) for m in re.finditer(r"E-\d{3}\s", text)]
+    box = None
+    for k, (i, c) in enumerate(heads):
+        if c.strip() == code:
+            top = tp.get_charbox(i)[3]                                 # pdf y grows upwards
+            nxt = next((j for j, c2 in heads[k + 1:] if c2.strip() != code), None)
+            bottom = tp.get_charbox(nxt)[3] + 14 if nxt is not None else 60
+            box = [36 * scale, (ph - top - 8) * scale, (pw - 36) * scale, (ph - bottom) * scale]
+            break
+    return {"file": name, "w": round(pw * scale), "h": round(ph * scale), "page": page_no, "doc": Path(pdf).name,
+            "highlight": [round(v, 1) for v in box] if box else None}
 
 
 def sh(cmd):
@@ -211,10 +308,36 @@ def ask(q):
 
 # --- answer: the hero question, with CPU load ------------------------------------------------------------------
 ask(SERIES[0])                                        # warm-up, not shown
-with CpuMeter() as idle:
-    time.sleep(3)
-with CpuMeter() as busy:
+with CpuMeter() as idle, PowerMeter() as idle_pw:
+    time.sleep(4)
+with CpuMeter() as busy, PowerMeter() as npu_pw:
     out["hero"] = ask(HERO)
+out["power"] = {"idle_w": idle_pw.median, "npu_w": npu_pw.median, "npu_trace": npu_pw.samples}
+
+# --- the race: the same prompt on the CPU ----------------------------------------------------------------------
+if PREVIEW:
+    n = out["hero"]["llm"]["tokens"]
+    out["race"] = {"device": "CPU", "answer": out["hero"]["answer"], "ttft_s": 3.4, "tokens": n, "tokens_per_s": 7.0,
+                   "stamps": [round(3.4 + k / 7, 3) for k in range(n)], "total_s": round(3.4 + n / 7, 2),
+                   "cpu_trace": [88 + (k * 7 % 11) for k in range(120)], "cpu_median": 93.0, "power_w": 41.0, "power_trace": []}
+    out["power"] |= {"idle_w": 4.0, "npu_w": 9.0}
+    busy.samples[:] = [4 + (k * 5 % 4) for k in range(len(busy.samples) or 100)]
+else:
+    try:
+        out["race"] = cpu_race(client.messages, Path(os.environ.get("MIRA_MODELS", ROOT / "models")) / settings.llm_model,
+                               settings.max_answer_tokens)
+    except Exception as error:  # noqa: BLE001 - the video leaves the race out rather than showing made-up numbers
+        print("race skipped:", error)
+out["power"]["cpu_w"] = out["race"]["power_w"] if "race" in out else None
+code = (re.search(r"E-\d{3}", HERO) or [None])[0]
+pdf_src = next((s for s in out["hero"]["sources"] if s["doc"].lower().endswith(".pdf") and s["location"].startswith("Seite")), None)
+if pdf_src:
+    out["source"] = source_page(DOCS / pdf_src["doc"], int(pdf_src["location"].split()[-1]), code, "source_page.png") | {"number": pdf_src["number"]}
+elif PREVIEW:                                         # simulated search cites tickets; show the manual page anyway
+    from mira.parsers import parse_file
+    pdf = next(DOCS.glob("*.pdf"))
+    pg = next(int(x.location.split()[-1]) for x in parse_file(pdf) if code in x.text)
+    out["source"] = source_page(pdf, pg, code, "source_page.png") | {"number": 1}
 out["unknown"] = ask(UNKNOWN)
 [v] = client.embed([QUERY_PREFIX + UNKNOWN])
 out["unknown"]["best_score"] = round(max((h.score for h in store.search(v, 1)), default=0), 3)
