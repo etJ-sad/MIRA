@@ -231,6 +231,14 @@ const ALL=[
    side(980,'NPU',C.npu,h.answer,n.stamps||[],nt,A().cpu.trace||[],pw.npu_w,true);
    const f=ramp(t,d*.8,d*.9);R(560,850,800,64,{r:6,f:'rgba(0,215,195,.12)',s:C.npu,lw:2,a:f});
    T(nt<ct?`NPU first · ${fmt(ct/nt,1)}× faster`+(SOLO?'':' · CPU free'):SOLO?'cores keep their headroom':'CPU free for the machine',W/2,892,{s:28,w:700,al:'center',c:C.npuHi,a:f});}},
+ {id:'why',see:'Three cards, why the NPU: the CPU cores belong to the control (measured race load), a graphics card costs money, power and cooling and the built-in one draws the HMI, the NPU is already on the chip and idle. The NPU card lights last.',draw(t,d){ground(t,.4);
+   const r=A().race||{},pw=A().power||{};T(SOLO?'WHICH PART OF THE PC SHOULD RUN IT?':'WHY THE NPU',W/2,170,{s:26,al:'center',c:C.mute,ls:6,a:ramp(t,.1,.6)});
+   const card=(x,k,col,title,rows,s0,hot)=>{const a=ramp(t,d*s0,d*s0+.5),y=lerp(290,250,eo(a));R(x,y,520,560,{r:10,f:C.panel,s:hot?col:'rgba(120,140,200,.35)',lw:hot?3:2,a,glow:hot?col:null,gb:hot?30:0});
+     T(k,x+36,y+70,{s:22,c:col,ls:4,a,mono:true});T(title,x+36,y+130,{s:44,w:700,a,c:hot?C.npuHi:C.txt,glow:hot?col:null});
+     rows.forEach((rw,i)=>{const b=ramp(t,d*s0+.5+i*.35,d*s0+.9+i*.35);T(rw[0],x+36,y+230+i*96,{s:28,w:700,a:b,c:rw[2]||C.txt});T(rw[1],x+36,y+266+i*96,{s:22,a:b,c:C.mute})})};
+   card(150,'01','CPU cores',[[r.cpu_median?`${fmt(r.cpu_median,0)} % load`:'busy','when they run the language model',C.nok],['taken','by the control software and the HMI'],['no','headroom left for the machine']],.05,false);
+   card(700,'02','Graphics',[['add-in card','cost, power and heat in the cabinet',C.amber],['built-in','already drawing the operator screen',C.amber],['shared','one chip, two jobs']],.3,false);
+   card(1250,'03','NPU',[['on the chip','in every new industrial PC',C.npuHi],[pw.npu_w?`${fmt(pw.npu_w,0)} W`:'low power',pw.npu_w?'whole package while it answers':'built for neural networks',C.npuHi],['idle','until now']],.6,true);}},
  {id:'unknown',see:'A question the documents cannot answer: best score below the threshold, the LLM is not asked, MIRA says "Weiß ich nicht."',draw(t,d){ground(t,.3);const u=A().unknown,thr=u.min_score||.35;
    bubble(typed(u.question,ramp(t,.2,d*.3))||' ',1780,150,1100,ramp(t,.1,.4));
    const a=ramp(t,d*.32,d*.42);R(140,330,820,420,{r:8,f:C.panel,s:'rgba(0,153,153,.4)',lw:1.5,a});T('BEST MATCH IN THE DOCUMENTS',180,390,{s:22,c:C.mute,ls:3,a});
@@ -282,7 +290,7 @@ const ALL=[
    T(PRE()?'PREVIEW · placeholder numbers, not measured':`Proof of concept · measured on ${A().host} · ${A().cpu_name} · ${short(A().llm_model)} on the NPU`,W/2,H-60,{s:20,al:'center',c:PRE()?C.amber:C.dim,a:ramp(t,1.2,2)});}},
 ];
 
-const ORDER=SOLO?['night','mira','read','ask','answer','source','unknown','app','me','proof','speed','race','cpu-free','series','offline','end']
+const ORDER=SOLO?['night','mira','read','ask','answer','source','unknown','app','me','proof','speed','race','why','cpu-free','series','offline','end']
   :['cold','cpu-gpu','eyes','night','llm','me','mira','read','ask','answer','source','speed','race','unknown','app','proof','cpu-free','series','offline','work','end'];
 const S=ORDER.map(id=>ALL.find(s=>s.id===id)).filter(s=>!s.need||A()[s.need]);   // same rule as narration.py
 

@@ -70,6 +70,12 @@
 ]
 },
 [
+"Why that unit, and not the cores or the graphics?",
+"The cores belong to the control software, and a language model would take them over.",
+"A graphics card means another part in the cabinet that costs money, draws power and needs cooling. The graphics built into the chip is busy drawing the operator screen.",
+"The neural unit sits on the same chip, in every new industrial PC, and has had nothing to do."
+],
+[
 "Across the answer, total processor load stays near {cpu} percent.",
 "The control software keeps its headroom."
 ],
