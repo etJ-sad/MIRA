@@ -10,16 +10,20 @@ from conftest import FakeModels
 LLM, EMB = "llm", "emb"
 
 
-def fake_ovms(states="AVAILABLE"):
+def fake_ovms(states="AVAILABLE", listed=True):
     """OVMS stand-in: /v1/config, embeddings and a streamed chat that answers from the question."""
     fake = FakeModels()
 
     def handle(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/v1/config":
+            if not listed:  # MediaPipe graphs (pulled with --task) are not listed here
+                return httpx.Response(200, json={})
             return httpx.Response(200, json={m: {"model_version_status": [{"version": "1", "state": states}]} for m in (LLM, EMB)})
         body = json.loads(request.content)
         if request.url.path == "/v3/embeddings":
             return httpx.Response(200, json={"data": [{"index": i, "embedding": v} for i, v in enumerate(fake.embed(body["input"]))]})
+        if not body.get("stream"):
+            return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
         question = body["messages"][-1]["content"].rsplit("Frage:", 1)[-1]
         reply = "Filtermatte tauschen [1]." if "E-417" in question else "Ansaugsieb reinigen [1]." if "E-126" in question else "Weiß ich nicht."
         events = [{"choices": [{"delta": {"content": w + " "}}]} for w in reply.split()] + [{"choices": [], "usage": {"completion_tokens": 3}}]
@@ -69,3 +73,9 @@ def test_model_devices_reads_the_graph(tmp_path):
     graph.parent.mkdir(parents=True)
     graph.write_text('node { options { device: "NPU" } }')
     assert model_devices(tmp_path) == {"OpenVINO/Qwen3-8B-int4-cw-ov": "NPU"}
+
+
+def test_check_probes_graphs_missing_from_config(tmp_path):
+    report = run_check(settings(tmp_path), None, docs(tmp_path), lambda _: None, fake_ovms(listed=False))
+    assert report["ok"]
+    assert [s["states"] for s in report["steps"] if s["step"] in ("LLM model", "embedding model")] == [["AVAILABLE"], ["AVAILABLE"]]

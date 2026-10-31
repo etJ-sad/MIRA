@@ -32,8 +32,17 @@ if ($SkipAssets) {
     if (-not $up) {
         Write-Host "starting OVMS (models load onto the NPU, can take a few minutes)"
         $ovmsProc = Start-Process $Ovms -ArgumentList "--rest_port 8000 --config_path `"$(Join-Path $Models 'config.json')`"" -PassThru -WindowStyle Minimized
-        do { Start-Sleep 5; $cfg = try { Invoke-RestMethod http://localhost:8000/v1/config -TimeoutSec 3 } catch { $null } }
-        until ($cfg -and -not ($cfg.PSObject.Properties.Value.model_version_status.state | Where-Object { $_ -ne "AVAILABLE" }))
+        # the models run as MediaPipe graphs, which /v1/config does not list: wait until both answer
+        $eb = '{"model":"OpenVINO/Qwen3-Embedding-0.6B-int8-ov","input":["ok"]}'
+        $cb = '{"model":"OpenVINO/Qwen3-8B-int4-cw-ov","max_tokens":1,"messages":[{"role":"user","content":"ok"}]}'
+        do {
+            Start-Sleep 5
+            $ready = try {
+                Invoke-RestMethod http://localhost:8000/v3/embeddings -Method Post -ContentType "application/json" -Body $eb -TimeoutSec 30 | Out-Null
+                Invoke-RestMethod http://localhost:8000/v3/chat/completions -Method Post -ContentType "application/json" -Body $cb -TimeoutSec 120 | Out-Null
+                $true
+            } catch { $false }
+        } until ($ready)
     }
     $env:OVMS_VERSION = (& $Ovms --version | Select-Object -First 1)
     $env:MIRA_MODELS = (Resolve-Path $Models)

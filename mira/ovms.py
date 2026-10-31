@@ -50,3 +50,23 @@ class OvmsClient:
         response = self._http.get(f"{root}/v1/config")
         response.raise_for_status()
         return response.json()
+
+    def model_states(self) -> dict[str, list[str]]:
+        """State of both MIRA models. LLM and embeddings pulled with --task run as MediaPipe graphs, which
+        /v1/config does not list (it answers {}); those are probed with a minimal real request instead."""
+        config = self.health()
+        states = {}
+        for name, probe in ((self.settings.llm_model, self._probe_llm), (self.settings.embed_model, self._probe_embed)):
+            listed = [v.get("state", "?") for v in (config.get(name) or {}).get("model_version_status", [])]
+            states[name] = listed or [probe()]
+        return states
+
+    def _probe_embed(self) -> str:
+        response = self._http.post("/embeddings", json={"model": self.settings.embed_model, "input": ["ok"]})
+        return "AVAILABLE" if response.status_code == 200 else f"HTTP {response.status_code}: {response.text[:120]}"
+
+    def _probe_llm(self) -> str:
+        response = self._http.post("/chat/completions", json={
+            "model": self.settings.llm_model, "max_tokens": 1, "stream": False,
+            "messages": [{"role": "user", "content": "ok"}]})
+        return "AVAILABLE" if response.status_code == 200 else f"HTTP {response.status_code}: {response.text[:120]}"

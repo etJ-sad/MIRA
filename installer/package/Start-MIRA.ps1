@@ -19,9 +19,17 @@ $env:MIRA_SAMPLES = "$here\samples\fz-300"
 $env:MIRA_OVMS_URL = "http://localhost:$OvmsPort/v3"
 
 function Get-Json($url) { try { Invoke-RestMethod $url -TimeoutSec 3 } catch { $null } }
+# LLM and embeddings run as MediaPipe graphs, which /v1/config does not list: ready means both answer a minimal request.
+$llm = if ($env:MIRA_LLM_MODEL) { $env:MIRA_LLM_MODEL } else { "OpenVINO/Qwen3-8B-int4-cw-ov" }
+$emb = if ($env:MIRA_EMBED_MODEL) { $env:MIRA_EMBED_MODEL } else { "OpenVINO/Qwen3-Embedding-0.6B-int8-ov" }
 function Wait-Models {
-    $cfg = Get-Json "http://localhost:$OvmsPort/v1/config"
-    $cfg -and $cfg.PSObject.Properties.Count -ge 2 -and -not ($cfg.PSObject.Properties.Value.model_version_status.state | Where-Object { $_ -ne "AVAILABLE" })
+    try {
+        $b = @{ model = $emb; input = @("ok") } | ConvertTo-Json -Compress
+        Invoke-RestMethod "http://localhost:$OvmsPort/v3/embeddings" -Method Post -ContentType "application/json" -Body $b -TimeoutSec 30 | Out-Null
+        $b = @{ model = $llm; max_tokens = 1; messages = @(@{ role = "user"; content = "ok" }) } | ConvertTo-Json -Compress -Depth 4
+        Invoke-RestMethod "http://localhost:$OvmsPort/v3/chat/completions" -Method Post -ContentType "application/json" -Body $b -TimeoutSec 120 | Out-Null
+        $true
+    } catch { $false }
 }
 
 if (-not (Wait-Models)) {
@@ -43,7 +51,7 @@ if (-not (Wait-Models)) {
         Start-Sleep 5
     }
 }
-Write-Host "Model server ready: both models AVAILABLE on the NPU (http://localhost:$OvmsPort)"
+Write-Host "Model server ready: both models answer on the NPU (http://localhost:$OvmsPort)"
 if ($OvmsOnly) { return }
 
 $url = "http://localhost:$Port"

@@ -102,10 +102,6 @@ def model_devices(models_dir: Path) -> dict[str, str]:
     return found
 
 
-def _states(config: dict, name: str) -> list[str]:
-    return [v.get("state", "?") for v in (config.get(name) or {}).get("model_version_status", [])]
-
-
 def demo_dir() -> Path | None:
     """Demo documents: $MIRA_SAMPLES, the installed package's samples, or the repository's."""
     here = Path(__file__).resolve().parent
@@ -131,7 +127,7 @@ def run_check(settings: Settings, models_dir: Path | None = None, docs: Path | N
 
     # 1. model server and both models
     try:
-        config = client.health()
+        all_states = client.model_states()
     except Exception as error:
         step("model server", False, f"OVMS not reachable ({error}). Start it first: Start-MIRA.ps1 or scripts\\start-ovms.ps1")
         report["ok"] = False
@@ -139,7 +135,7 @@ def run_check(settings: Settings, models_dir: Path | None = None, docs: Path | N
     step("model server", True, "reachable")
     devices = model_devices(models_dir) if models_dir and Path(models_dir).is_dir() else {}
     for role, name in (("LLM model", settings.llm_model), ("embedding model", settings.embed_model)):
-        states = _states(config, name)
+        states = all_states[name]
         device = devices.get(name)
         ok = bool(states) and all(s == "AVAILABLE" for s in states) and device in (None, "NPU")
         where = f", compiled for {device}" if device else ", graph not found (pass --models to check the device)"

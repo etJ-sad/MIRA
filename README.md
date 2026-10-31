@@ -58,7 +58,8 @@ Tests: [docs/testing.md](docs/testing.md), Vorführung: [docs/demo-script.md](do
    ```powershell
    .\scripts\start-ovms.ps1
    ```
-   Bereit, wenn `curl.exe http://localhost:8000/v1/config` für beide Modelle `AVAILABLE` meldet.
+   Läuft, wenn `curl.exe http://localhost:8000/v1/config` antwortet (`{}` ist richtig: LLM und Embeddings laufen
+   als Graphen und stehen dort nicht). Ob beide Modelle antworten, zeigt `mira check` (Schritt 6).
 4. MIRA installieren und starten (Python 3.10 oder neuer):
    ```powershell
    python -m venv .venv
