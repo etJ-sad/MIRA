@@ -32,7 +32,21 @@ Beide sind von Intel für die NPU vorbereitet. Ein kleineres LLM aus der Sammlun
 [LLMs optimized for NPU](https://huggingface.co/collections/OpenVINO/llms-optimized-for-npu)
 lässt sich über `-LlmModel` bzw. `MIRA_LLM_MODEL` setzen.
 
-## Installation unter Windows 11 (Intel Core Ultra)
+## Paket, Installation, Test (wie Lumen und Greenforest)
+
+```powershell
+.\installer\build_release.ps1                                  # Offline-Paket: build\release\MIRA-<version>-win-x64.zip
+powershell -ExecutionPolicy Bypass -File build\release\MIRA\Install-MIRA.ps1 -Start
+& "$env:LOCALAPPDATA\Programs\MIRA\verify.cmd"                 # Tests + NPU-Prüfung, endet mit RESULT: OK
+& "$env:LOCALAPPDATA\Programs\MIRA\npu-demo.cmd"               # 30 s NPU-Last, im Task-Manager sichtbar
+```
+
+Das Paket enthält eingebettetes Python, MIRA, OVMS, beide NPU-Modelle und die Demo-Dokumente (`samples/fz-300`),
+braucht kein Internet und keine Admin-Rechte. Startmenü → MIRA → *MIRA Wartungsassistent* lädt die Modelle auf die
+NPU und öffnet die Web-UI. Ablauf und Fehlersuche: [docs/build-deploy-test.md](docs/build-deploy-test.md),
+Tests: [docs/testing.md](docs/testing.md), Vorführung: [docs/demo-script.md](docs/demo-script.md).
+
+## Installation unter Windows 11 (Intel Core Ultra), aus dem Repo
 
 1. Aktuellen Intel NPU-Treiber installieren.
 2. OVMS-Paket für Windows von den [Releases](https://github.com/openvinotoolkit/model_server/releases)
@@ -54,7 +68,11 @@ lässt sich über `-LlmModel` bzw. `MIRA_LLM_MODEL` setzen.
    pip install -e .
    mira serve
    ```
-6. Browser öffnen: <http://localhost:8080>. Dokumente rechts hochladen, dann fragen.
+6. Browser öffnen: <http://localhost:8080>. Dokumente rechts hochladen, dann fragen. Zum Ausprobieren:
+   die Demo-Dokumente in `samples\fz-300` und die Frage „Anlage 3 zeigt E-417, was tun?“.
+7. Prüfen (drittes Fenster, Modellserver läuft): `mira check --models .\models` bestätigt, dass beide Modelle
+   für die NPU kompiliert sind, liest die Demo-Dokumente, beantwortet zwei Störungsfragen mit Quellen und eine
+   unbekannte mit „Weiß ich nicht“. `mira npu-demo` hält die NPU 30 s beschäftigt.
 
 ## Installation unter Linux (Docker)
 
@@ -71,6 +89,8 @@ Die NPU wird über `/dev/accel` in den Container gereicht. MIRA läuft danach au
 mira ingest ./handbuecher ./stoercodes.xlsx   # Dateien oder Ordner einlesen
 mira ask "Anlage 3 zeigt E-417, was tun?"
 mira serve --port 8080
+mira check --models ./models                  # NPU-Prüfung mit den Demo-Dokumenten
+mira npu-demo 30                              # 30 s Antworten, NPU-Last im Task-Manager
 ```
 
 Der Vektor-Index liegt als Datei unter `data/index` und kann immer nur von einem Prozess geöffnet
@@ -96,10 +116,9 @@ Alle über Umgebungsvariablen:
 
 ```bash
 pip install -e ".[dev]"
-pytest
+pytest                                        # ohne NPU und ohne Modellserver (Modelle werden simuliert)
+pytest -m hardware tests/hardware             # auf der NPU, Modellserver muss laufen, MIRA_MODELS=Modellordner
 ```
-
-Die Tests laufen ohne NPU und ohne Modellserver (Modelle werden simuliert).
 
 ## API
 

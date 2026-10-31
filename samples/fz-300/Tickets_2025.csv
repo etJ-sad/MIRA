@@ -1,0 +1,65 @@
+Ticket;Datum;Anlage;Störcode;Beschreibung;Maßnahme;Techniker
+#2200;2025-01-01;Anlage 3;E-101;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2203;2025-02-08;Anlage 3;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;MK
+#2206;2025-03-15;Anlage 1;E-612;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2209;2025-04-22;Anlage 1;E-120;Störung behoben nach Anleitung.;Nach Handbuch;TS
+#2212;2025-05-01;Anlage 1;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;MK
+#2215;2025-06-08;Anlage 4;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;JR
+#2218;2025-07-15;Anlage 1;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;TS
+#2221;2025-08-22;Anlage 2;E-112;Leckage am Schnellkupplung Wartungsgerät, Kupplung getauscht.;Kupplung ersetzt;MK
+#2224;2025-09-01;Anlage 4;E-302;Störung behoben nach Anleitung.;Nach Handbuch;TS
+#2227;2025-10-08;Anlage 3;E-330;Behälter leer, Fett nachgefüllt, Leitung entlüftet.;Nachgefüllt;MK
+#2230;2025-11-15;Anlage 4;E-215;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2233;2025-12-22;Anlage 3;E-305;Störung behoben nach Anleitung.;Nach Handbuch;JR
+#2236;2025-01-01;Anlage 3;E-418;Störung behoben nach Anleitung.;Nach Handbuch;JR
+#2239;2025-02-08;Anlage 2;E-104;Störung behoben nach Anleitung.;Nach Handbuch;TS
+#2242;2025-03-15;Anlage 1;E-402;Störung behoben nach Anleitung.;Nach Handbuch;AB
+#2245;2025-04-22;Anlage 3;E-207;Störung behoben nach Anleitung.;Nach Handbuch;JR
+#2248;2025-05-01;Anlage 1;E-112;Leckage am Schnellkupplung Wartungsgerät, Kupplung getauscht.;Kupplung ersetzt;JR
+#2251;2025-06-08;Anlage 2;E-417;Lüfter M7 stand, Lager fest. Lüfter getauscht.;Lüfter M7 ersetzt;JR
+#2254;2025-07-15;Anlage 1;E-120;Störung behoben nach Anleitung.;Nach Handbuch;AB
+#2257;2025-08-22;Anlage 4;E-101;Störung behoben nach Anleitung.;Nach Handbuch;JR
+#2260;2025-09-01;Anlage 1;E-302;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2263;2025-10-08;Anlage 1;E-330;Behälter leer, Fett nachgefüllt, Leitung entlüftet.;Nachgefüllt;MK
+#2266;2025-11-15;Anlage 3;E-417;Filtermatte grau, getauscht. Wöchentliche Prüfung im Schichtbuch ergänzt.;Filtermatte M7 getauscht;JR
+#2269;2025-12-22;Anlage 3;E-112;Leckage am Schnellkupplung Wartungsgerät, Kupplung getauscht.;Kupplung ersetzt;MK
+#2272;2025-01-01;Anlage 2;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;MK
+#2275;2025-02-08;Anlage 2;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;AB
+#2278;2025-03-15;Anlage 3;E-112;Leckage am Schnellkupplung Wartungsgerät, Kupplung getauscht.;Kupplung ersetzt;JR
+#2281;2025-04-22;Anlage 1;E-612;Störung behoben nach Anleitung.;Nach Handbuch;TS
+#2284;2025-05-01;Anlage 4;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;AB
+#2287;2025-06-08;Anlage 3;E-601;Störung behoben nach Anleitung.;Nach Handbuch;AB
+#2290;2025-07-15;Anlage 3;E-402;Störung behoben nach Anleitung.;Nach Handbuch;JR
+#2293;2025-08-22;Anlage 1;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;TS
+#2296;2025-09-01;Anlage 2;E-112;Leckage am Schnellkupplung Wartungsgerät, Kupplung getauscht.;Kupplung ersetzt;MK
+#2299;2025-10-08;Anlage 3;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;AB
+#2302;2025-11-15;Anlage 3;E-417;Filtermatte links komplett zu, getauscht. Danach läuft die Spindel normal.;Filtermatte M7 getauscht;AB
+#2305;2025-12-22;Anlage 2;E-305;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2308;2025-01-01;Anlage 3;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;JR
+#2311;2025-02-08;Anlage 3;E-112;Leckage am Schnellkupplung Wartungsgerät, Kupplung getauscht.;Kupplung ersetzt;JR
+#2314;2025-03-15;Anlage 1;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;TS
+#2317;2025-04-22;Anlage 1;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;AB
+#2320;2025-05-01;Anlage 1;E-305;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2323;2025-06-08;Anlage 4;E-302;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2326;2025-07-15;Anlage 1;E-104;Störung behoben nach Anleitung.;Nach Handbuch;TS
+#2329;2025-08-22;Anlage 2;E-305;Störung behoben nach Anleitung.;Nach Handbuch;AB
+#2332;2025-09-01;Anlage 3;E-104;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2335;2025-10-08;Anlage 3;E-330;Behälter leer, Fett nachgefüllt, Leitung entlüftet.;Nachgefüllt;JR
+#2338;2025-11-15;Anlage 1;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;TS
+#2341;2025-12-22;Anlage 3;E-330;Behälter leer, Fett nachgefüllt, Leitung entlüftet.;Nachgefüllt;JR
+#2344;2025-01-01;Anlage 4;E-503;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2347;2025-02-08;Anlage 2;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;MK
+#2350;2025-03-15;Anlage 1;E-418;Störung behoben nach Anleitung.;Nach Handbuch;AB
+#2353;2025-04-22;Anlage 2;E-207;Störung behoben nach Anleitung.;Nach Handbuch;AB
+#2356;2025-05-01;Anlage 4;E-418;Störung behoben nach Anleitung.;Nach Handbuch;AB
+#2359;2025-06-08;Anlage 4;E-311;Störung behoben nach Anleitung.;Nach Handbuch;TS
+#2362;2025-07-15;Anlage 3;E-421;Störung behoben nach Anleitung.;Nach Handbuch;TS
+#2365;2025-08-22;Anlage 3;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;MK
+#2368;2025-09-01;Anlage 3;E-417;Lüfter M7 stand, Lager fest. Lüfter getauscht.;Lüfter M7 ersetzt;AB
+#2371;2025-10-08;Anlage 3;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;AB
+#2374;2025-11-15;Anlage 2;E-104;Störung behoben nach Anleitung.;Nach Handbuch;MK
+#2377;2025-12-22;Anlage 2;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;AB
+#2380;2025-01-01;Anlage 4;E-126;Ansaugsieb voller Späne, gereinigt, Q14 zurückgesetzt.;Sieb gereinigt;MK
+#2383;2025-02-08;Anlage 1;E-203;B42 verstellt, auf 1,5 mm eingestellt.;Initiator justiert;MK
+#2386;2025-03-15;Anlage 2;E-612;Störung behoben nach Anleitung.;Nach Handbuch;JR
+#2389;2025-04-22;Anlage 3;E-601;Störung behoben nach Anleitung.;Nach Handbuch;AB

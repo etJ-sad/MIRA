@@ -3,7 +3,7 @@
 The machine "FZ-300" and everything about it is fictional. MIRA reads these files like real customer documents;
 every answer in the video comes from them.
 
-usage: python video/demo/make_docs.py <out dir>      (needs reportlab and openpyxl)
+usage: python video/demo/make_docs.py samples/fz-300      (needs reportlab and openpyxl)
 """
 import csv
 import random

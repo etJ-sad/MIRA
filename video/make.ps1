@@ -20,7 +20,7 @@ $ff = & $vpy -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"
 $m = "$Work\models"; New-Item -ItemType Directory -Force $m | Out-Null
 $rel = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0"
 foreach ($f in "kokoro-v1.0.onnx", "voices-v1.0.bin") { if (-not (Test-Path "$m\$f")) { curl.exe -fL --retry 4 -o "$m\$f" "$rel/$f" } }
-if (-not (Test-Path "$PSScriptRoot\demo\docs")) { & $vpy "$PSScriptRoot\demo\make_docs.py" "$PSScriptRoot\demo\docs" }
+if (-not (Test-Path "$root\samples\fz-300")) { & $vpy "$PSScriptRoot\demo\make_docs.py" "$root\samples\fz-300" }
 
 $ovmsProc = $null
 if ($SkipAssets) {

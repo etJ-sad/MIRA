@@ -29,3 +29,5 @@ mira = ["static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not hardware'"
+markers = ["hardware: needs the NPU and a running OVMS with the MIRA models"]

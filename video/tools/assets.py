@@ -8,7 +8,7 @@ The race runs the same LLM files with the same prompt on the CPU (openvino_genai
 without an NPU. Power is the SoC package power from the Windows "Energy Meter" counters (CPU, GPU and NPU share
 the package), sampled once a second; without those counters the video leaves power out.
 
-Run with the video venv, which has MIRA installed (pip install -e .). The demo documents in video/demo/docs are
+Run with the video venv, which has MIRA installed (pip install -e .). The demo documents in samples/fz-300 are
 read exactly like customer documents; the answers shown in the video are the ones MIRA gives here.
 """
 import json
@@ -38,7 +38,7 @@ W = Path(sys.argv[1]).resolve()
 PREVIEW = "--preview" in sys.argv
 A = W / "assets"
 A.mkdir(parents=True, exist_ok=True)
-DOCS = ROOT / "video" / "demo" / "docs"
+DOCS = ROOT / "samples" / "fz-300"
 
 HERO = "Anlage 3 zeigt E-417, was tun?"
 UNKNOWN = "Welches Anzugsmoment gilt für die Spindelmutter an Anlage 7?"
