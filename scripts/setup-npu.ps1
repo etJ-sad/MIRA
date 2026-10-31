@@ -1,5 +1,5 @@
 # Lädt LLM und Embedding-Modell für die NPU und trägt beide in models\config.json ein.
-# Voraussetzung: OVMS-Paket für Windows entpackt (ovms\ovms.exe), Intel NPU-Treiber installiert.
+# Voraussetzung: Intel NPU-Treiber installiert. Fehlt ovms\ovms.exe, wird OVMS vorher geladen (scripts\get-ovms.ps1).
 param(
     [string]$Ovms = ".\ovms\ovms.exe",
     [string]$Models = ".\models",
@@ -8,6 +8,10 @@ param(
     [int]$MaxPromptLen = 4000
 )
 $ErrorActionPreference = "Stop"
+Set-Location (Resolve-Path "$PSScriptRoot\..")
+if (-not (Test-Path $Ovms)) { & "$PSScriptRoot\get-ovms.ps1" -Target (Split-Path $Ovms) }
+$setupvars = Join-Path (Split-Path $Ovms) "setupvars.ps1"
+if (Test-Path $setupvars) { . $setupvars | Out-Null }
 New-Item -ItemType Directory -Force -Path $Models | Out-Null
 $config = Join-Path $Models "config.json"
 

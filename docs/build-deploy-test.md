@@ -9,10 +9,9 @@ Installiert wird nach `%LOCALAPPDATA%\Programs\MIRA`. Dokumente, Index und Logs 
 ## 0. Einmalig auf dem Build-Rechner
 
 1. Aktuellen Intel NPU-Treiber installieren.
-2. OVMS-Paket für Windows von den [Releases](https://github.com/openvinotoolkit/model_server/releases) als
-   `ovms\` ins Repo entpacken. Prüfen: `.\ovms\ovms.exe --version`.
-3. Modelle für die NPU laden (einige GB): `.\scripts\setup-npu.ps1`
-4. Build-Venv: `py -3 -m venv .venv; .\.venv\Scripts\pip install -e ".[dev]"`
+2. Modelle für die NPU laden (einige GB): `.\scripts\setup-npu.ps1`. Das Skript lädt OVMS für Windows nach
+   `ovms\`, falls es fehlt.
+3. Build-Venv: `py -3 -m venv .venv; .\.venv\Scripts\pip install -e ".[dev]"`
 
 ## 1. Build
 

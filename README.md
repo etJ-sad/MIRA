@@ -49,28 +49,26 @@ Tests: [docs/testing.md](docs/testing.md), Vorführung: [docs/demo-script.md](do
 ## Installation unter Windows 11 (Intel Core Ultra), aus dem Repo
 
 1. Aktuellen Intel NPU-Treiber installieren.
-2. OVMS-Paket für Windows von den [Releases](https://github.com/openvinotoolkit/model_server/releases)
-   laden und hier als `ovms\` entpacken. Prüfen: `.\ovms\ovms.exe --version`.
-   (Bei älteren Paketen vorher `.\ovms\setupvars.ps1` ausführen.)
-3. Modelle laden und eintragen (einmalig, einige GB):
+2. Modelle laden und eintragen (einmalig, einige GB). Fehlt `ovms\`, lädt das Skript vorher das aktuelle
+   OVMS-Paket für Windows von GitHub (`scripts\get-ovms.ps1`, eine bestimmte Version mit `-Version v2025.4`):
    ```powershell
    .\scripts\setup-npu.ps1
    ```
-4. Modellserver starten (eigenes Fenster):
+3. Modellserver starten (eigenes Fenster):
    ```powershell
    .\scripts\start-ovms.ps1
    ```
    Bereit, wenn `curl.exe http://localhost:8000/v1/config` für beide Modelle `AVAILABLE` meldet.
-5. MIRA installieren und starten (Python 3.10 oder neuer):
+4. MIRA installieren und starten (Python 3.10 oder neuer):
    ```powershell
    python -m venv .venv
    .\.venv\Scripts\Activate.ps1
    pip install -e .
    mira serve
    ```
-6. Browser öffnen: <http://localhost:8080>. Dokumente rechts hochladen, dann fragen. Zum Ausprobieren:
+5. Browser öffnen: <http://localhost:8080>. Dokumente rechts hochladen, dann fragen. Zum Ausprobieren:
    die Demo-Dokumente in `samples\fz-300` und die Frage „Anlage 3 zeigt E-417, was tun?“.
-7. Prüfen (drittes Fenster, Modellserver läuft): `mira check --models .\models` bestätigt, dass beide Modelle
+6. Prüfen (drittes Fenster, Modellserver läuft): `mira check --models .\models` bestätigt, dass beide Modelle
    für die NPU kompiliert sind, liest die Demo-Dokumente, beantwortet zwei Störungsfragen mit Quellen und eine
    unbekannte mit „Weiß ich nicht“. `mira npu-demo` hält die NPU 30 s beschäftigt.
 
